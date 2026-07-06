@@ -1,4 +1,18 @@
+/**
+ * 🌟 GOOD FIRST ISSUE FRIENDLY 🌟
+ * 
+ * Welcome new contributors! This file sets up our connection to the Supabase backend.
+ * Supabase is like our database and authentication server all in one.
+ * 
+ * What this code does in plain English:
+ * 1. It grabs our project URL and public "anon" key from the environment variables (like a password safe).
+ * 2. It creates a "browser client" which is basically a secure tunnel our React app uses 
+ *    to talk to Supabase (e.g., to fetch events or check if a user is logged in).
+ * 
+ * You usually don't need to change this file unless we are adding new backend services!
+ */
 import { createBrowserClient } from '@supabase/ssr'
+
 
 export function createClient() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
