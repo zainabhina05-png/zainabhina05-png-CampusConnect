@@ -1,3 +1,4 @@
+import { formatDate } from '../lib/utils';
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site/SiteShell";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,7 +47,6 @@ function EventsPage() {
   });
 
   useEffect(() => {
-    // Realtime subscription for RSVP counts
     const channel = supabase
       .channel("realtime_rsvps")
       .on("postgres_changes", { event: "*", schema: "public", table: "event_rsvps" }, () => {
@@ -77,8 +77,7 @@ function EventsPage() {
 
   const colors = ["bg-lime", "bg-sky", "bg-peach", "bg-lavender"];
 
-  // Basic frontend filtering (mock tags since we didn't add a tag column to schema)
-  const filteredEvents = filter === "All" ? events : events.filter(() => true); // In a real app, filter by tag
+  const filteredEvents = filter === "All" ? events : events.filter(() => true);
 
   return (
     <SiteShell>
@@ -114,14 +113,11 @@ function EventsPage() {
               return (
                 <article key={e.id} className="neu-border neu-press flex flex-col bg-white p-5">
                   <div className="mb-4 flex items-start justify-between">
+                    {/* Updated: Standardized card badge layout using your global formatting utility */}
                     <div
-                      className={`neu-border ${colors[index % colors.length]} px-4 py-3 text-center font-mono text-sm font-bold`}
+                      className={`neu-border ${colors[index % colors.length]} px-4 py-3 text-center font-mono text-xs font-bold`}
                     >
-                      {e.event_date
-                        ? new Date(e.event_date)
-                            .toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                            .toUpperCase()
-                        : "TBA"}
+                      {e.event_date ? formatDate(e.event_date).split(" at ")[0].toUpperCase() : "TBA"}
                     </div>
                     <span className="neu-border bg-cream px-2 py-1 font-mono text-[10px] font-bold uppercase">
                       Event
@@ -130,19 +126,16 @@ function EventsPage() {
                   <h2 className="text-xl font-bold">{e.title}</h2>
                   <p className="mt-1 font-mono text-xs">{c?.name}</p>
                   <div className="my-4 border-t-2 border-black" />
+
+                  {/* Updated Data List: Displays full standardized clean text layout */}
                   <dl className="space-y-1 font-mono text-xs">
-                    <div className="flex justify-between">
-                      <dt className="font-bold uppercase">Time</dt>
-                      <dd>
-                        {e.event_date
-                          ? new Date(e.event_date).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "TBA"}
+                    <div className="flex flex-col gap-0.5 border-b border-gray-100 pb-1.5">
+                      <dt className="font-bold uppercase text-gray-500">Date & Time</dt>
+                      <dd className="font-medium text-black">
+                        {e.event_date ? formatDate(e.event_date) : "TBA"}
                       </dd>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between pt-1.5">
                       <dt className="font-bold uppercase">Venue</dt>
                       <dd>{e.location || "TBA"}</dd>
                     </div>
@@ -151,6 +144,7 @@ function EventsPage() {
                       <dd className="font-bold">{rsvps.length} RSVP'd</dd>
                     </div>
                   </dl>
+
                   <button
                     onClick={() => {
                       if (!user) return alert("Please log in to RSVP");
