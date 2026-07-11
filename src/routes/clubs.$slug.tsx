@@ -26,7 +26,10 @@ export const Route = createFileRoute("/clubs/$slug")({
 function ClubProfileSkeleton() {
   return (
     <SiteShell>
-      <section className="border-b-2 border-black bg-lime px-4 py-14 md:px-6">
+      <span role="status" aria-live="polite" className="sr-only">
+        Loading club profile…
+      </span>
+      <section aria-hidden="true" className="border-b-2 border-black bg-lime px-4 py-14 md:px-6">
         <div className="mx-auto max-w-6xl">
           <Bone className="h-4 w-16" />
           <Bone className="mt-3 h-12 w-2/3 max-w-md md:h-16" />
@@ -38,7 +41,7 @@ function ClubProfileSkeleton() {
           </div>
         </div>
       </section>
-      <section className="bg-cream px-4 py-12 md:px-6">
+      <section aria-hidden="true" className="bg-cream px-4 py-12 md:px-6">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
           <div className="neu-border bg-white p-6 lg:col-span-2">
             <h2 className="mb-4 border-b-2 border-black pb-3 text-xl font-bold">Upcoming events</h2>
@@ -64,7 +67,6 @@ function ClubProfileSkeleton() {
     </SiteShell>
   );
 }
-
 function ClubProfile() {
   const { slug } = Route.useParams();
   const supabase = createClient();
