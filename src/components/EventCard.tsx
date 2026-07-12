@@ -8,6 +8,7 @@ interface Event {
   description: string | null;
   event_date: string | null;
   location: string | null;
+  banner_url?: string | null;
   clubs: { name: string } | { name: string }[] | null;
   event_rsvps: { id: string; user_id: string }[] | null;
 }
