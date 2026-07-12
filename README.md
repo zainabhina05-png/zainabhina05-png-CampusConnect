@@ -32,7 +32,7 @@ CampusConnect solves the chaos of college clubs juggling WhatsApp groups, spread
 
 ## 🗄️ Architecture / Database
 
-CampusConnect's data lives entirely in Supabase (Postgres). The schema is defined in [`supabase/schema.sql`](./supabase/schema.sql) and centers on **clubs**, the **members**/**events** they run, and the **posts** their members write.
+CampusConnect stores its data in Supabase (Postgres) and uses Supabase Auth plus Row Level Security to protect access. The schema is defined in [supabase/schema.sql](./supabase/schema.sql) and centers on clubs, the members and events they run, and the posts their members write.
 
 ### Entity-relationship diagram
 
@@ -108,24 +108,24 @@ erDiagram
   }
 ```
 
-### Tables
+### Core tables
 
-| Table           | Key columns                                                                 | Purpose                                                                 |
-| :--------------- | :--------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
-| `profiles`       | `id` (PK, = `auth.users.id`), `full_name`, `avatar_url`, `college`, `bio`, `role` | One row per authenticated user; auto-created by the `on_auth_user_created` trigger on signup. |
-| `clubs`          | `id` (PK), `name`, `slug` (unique), `description`, `banner_url`, `logo_url`, `created_by` → `profiles.id` | A campus club/society. `slug` is used for the public `/clubs/:slug` route. |
-| `club_members`   | `id` (PK), `club_id` → `clubs.id`, `user_id` → `profiles.id`, `role`, `status` | Join table linking users to clubs, with a `member`/`admin` role and a `pending`/`approved` status. Unique per `(club_id, user_id)`. |
-| `events`         | `id` (PK), `club_id` → `clubs.id`, `title`, `description`, `event_date`, `location`, `created_by` → `profiles.id` | An event hosted by a club. |
-| `event_rsvps`    | `id` (PK), `event_id` → `events.id`, `user_id` → `profiles.id`, `checked_in` | A user's RSVP to an event, plus a `checked_in` flag set on QR check-in. Unique per `(event_id, user_id)`. |
-| `posts`          | `id` (PK), `club_id` → `clubs.id`, `author_id` → `profiles.id`, `content` | A discussion post on a club's feed. |
-| `comments`       | `id` (PK), `post_id` → `posts.id`, `author_id` → `profiles.id`, `content` | A reply to a post. |
-| `certificates`   | `id` (PK), `event_id` → `events.id`, `user_id` → `profiles.id`, `certificate_url` | A generated certificate issued to a user for attending an event. |
+| Table | Key columns | Purpose |
+| :---- | :---------- | :------ |
+| `profiles` | `id` (PK, = `auth.users.id`), `full_name`, `avatar_url`, `college`, `bio`, `role` | One row per authenticated user; auto-created by the `on_auth_user_created` trigger on signup. |
+| `clubs` | `id` (PK), `name`, `slug` (unique), `description`, `banner_url`, `logo_url`, `created_by` → `profiles.id` | A campus club or society. `slug` is used for the public `/clubs/:slug` route. |
+| `club_members` | `id` (PK), `club_id` → `clubs.id`, `user_id` → `profiles.id`, `role`, `status` | Join table linking users to clubs, with a `member`/`admin` role and a `pending`/`approved` status. |
+| `events` | `id` (PK), `club_id` → `clubs.id`, `title`, `description`, `event_date`, `location`, `created_by` → `profiles.id` | An event hosted by a club. |
+| `event_rsvps` | `id` (PK), `event_id` → `events.id`, `user_id` → `profiles.id`, `checked_in` | A user's RSVP to an event, plus a `checked_in` flag set on QR check-in. |
+| `posts` | `id` (PK), `club_id` → `clubs.id`, `author_id` → `profiles.id`, `content` | A discussion post on a club's feed. |
+| `comments` | `id` (PK), `post_id` → `posts.id`, `author_id` → `profiles.id`, `content` | A reply to a post. |
+| `certificates` | `id` (PK), `event_id` → `events.id`, `user_id` → `profiles.id`, `certificate_url` | A generated certificate issued to a user for attending an event. |
 
 ### Notes
 
-- All tables have **Row Level Security (RLS)** enabled — see the policies in [`supabase/schema.sql`](./supabase/schema.sql) for exactly who can read/write what (e.g. only club admins can create events, only authors can edit their own posts/comments).
-- `posts`, `comments`, and `event_rsvps` are added to the `supabase_realtime` publication, which is what powers the live-updating feed and RSVP counts.
-- Storage buckets (`avatars`, `club-banners`, `event-banners`, `certificates`) are public-read, with writes restricted to the authenticated user's own folder.
+- All tables have Row Level Security enabled; the policies in [supabase/schema.sql](./supabase/schema.sql) define exactly who can read and write data.
+- `posts`, `comments`, and `event_rsvps` are included in the `supabase_realtime` publication to power live-updating feed and RSVP behavior.
+- Storage buckets such as `avatars`, `club-banners`, `event-banners`, and `certificates` are public-read, with writes restricted to the authenticated user's own folder.
 
 ## 🚀 Getting Started
 
