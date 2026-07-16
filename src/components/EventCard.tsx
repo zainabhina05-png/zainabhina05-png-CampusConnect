@@ -1,6 +1,6 @@
 import { formatDate, getGoogleCalendarUrl } from "@/lib/utils";
 import { FormEvent, useState } from "react";
-import { X, Link as LinkIcon, Calendar, Check, Share2 } from "lucide-react";
+import { Calendar, Check, Share2, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Button } from "@/components/ui/button";
@@ -255,7 +255,6 @@ export function EventCard({ event, index, user, onRsvpToggle, isRsvpPending }: E
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           {hasRsvpd && googleCalendarUrl && (
             <a
               href={googleCalendarUrl}
@@ -269,6 +268,7 @@ export function EventCard({ event, index, user, onRsvpToggle, isRsvpPending }: E
           )}
         </div>
       ) : null}
+
       <div className="mt-4 flex gap-2">
         <a
           href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`}
