@@ -109,15 +109,22 @@ export function getGoogleCalendarUrl(event: {
   title: string;
   description: string | null;
   event_date: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
   location: string | null;
 }): string | null {
-  if (!event.event_date) return null;
+  const startValue = event.start_date || event.event_date;
 
-  const startDate = new Date(event.event_date);
+  if (!startValue) return null;
+
+  const startDate = new Date(startValue);
   if (isNaN(startDate.getTime())) return null;
 
-  // Default duration to 1 hour
-  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+  const endDate = event.end_date
+    ? new Date(event.end_date)
+    : new Date(startDate.getTime() + 60 * 60 * 1000);
+
+  if (isNaN(endDate.getTime())) return null;
 
   const formatUtcDate = (date: Date) => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
