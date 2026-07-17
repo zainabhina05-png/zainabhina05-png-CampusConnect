@@ -68,68 +68,27 @@ export default function Feed() {
   const {
     data,
     isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
+    isFetching,
     refetch: refetchPosts,
   } = useInfiniteQuery({
     queryKey: ["posts"],
-    initialPageParam: 0,
-    queryFn: async ({ pageParam = 0 }) => {
-      const from = pageParam * POSTS_PER_PAGE;
-      const to = from + POSTS_PER_PAGE - 1;
-
-      const { data, error } = await supabase
+    queryFn: async () => {
+      const { data } = await supabase
         .from("posts")
         .select(
           `
-        id, content, created_at, club_id,
-        profiles (id, full_name),
-        clubs (
-          id,
-          name,
-          club_members (user_id, role)
-        ),
-        comments (
-          id,
-          content,
-          created_at,
-          profiles (id, full_name)
+          id, content, created_at, club_id,
+          profiles (id, full_name),
+          clubs (id, name, club_members (user_id, role)),
+          comments (id, content, created_at, profiles (id, full_name))
+          `,
         )
-      `,
-        )
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
-
-      return {
-        posts: data || [],
-        nextPage: (data || []).length === POSTS_PER_PAGE ? pageParam + 1 : undefined,
-      };
+      return data || [];
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
   });
-
-  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
-
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!sentinelRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: "100px" },
-    );
-
-    observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     const channel = supabase
@@ -138,6 +97,9 @@ export default function Feed() {
         refetchPosts();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, () => {
+        refetchPosts();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "post_reactions" }, () => {
         refetchPosts();
       })
       .subscribe();
@@ -177,24 +139,6 @@ export default function Feed() {
       setNewComments((prev) => ({ ...prev, [postId]: "" }));
     },
     onSuccess: () => refetchPosts(),
-  });
-
-  const deletePostMutation = useMutation({
-    mutationFn: async (postId: string) => {
-      if (!user) throw new Error("Must be logged in");
-      const { error } = await supabase
-        .from("posts")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", postId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      refetchPosts();
-      toast.success("Post deleted successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to delete post.");
-    },
   });
 
   const timeAgo = (dateString: string) => {
@@ -389,6 +333,38 @@ export default function Feed() {
                       <ReactMarkdown>{post.content}</ReactMarkdown>
                     </div>
 
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {["👍", "👏", "🔥"].map((emoji) => {
+                        const postReactions = Array.isArray(post.post_reactions)
+                          ? post.post_reactions
+                          : [];
+                        const reactionCount = postReactions.filter(
+                          (r: { emoji: string; user_id: string }) => r.emoji === emoji,
+                        ).length;
+                        const isReacted = postReactions.some(
+                          (r: { emoji: string; user_id: string }) =>
+                            r.emoji === emoji && r.user_id === user?.id,
+                        );
+
+                        return (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => {
+                              if (!user) return alert("Log in first");
+                              reactionMutation.mutate({ postId: post.id, emoji, isReacted });
+                            }}
+                            className={`neu-border flex items-center gap-1.5 px-3 py-1 font-mono text-xs font-bold transition-transform hover:-translate-y-0.5 ${
+                              isReacted ? "bg-lime" : "bg-white hover:bg-cream"
+                            }`}
+                          >
+                            <span>{emoji}</span>
+                            {reactionCount > 0 && <span>{reactionCount}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <div className="mt-4 flex gap-2 border-t-2 border-black pt-4">
                       <a
                         href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${window.location.origin}${window.location.pathname}#post-${post.id}`)}`}
@@ -484,22 +460,6 @@ export default function Feed() {
                 );
               })
             )}
-            {isFetchingNextPage &&
-              Array.from({ length: 2 }).map((_, i) => (
-                <div key={`loading-${i}`} className="neu-border bg-white p-6 animate-pulse">
-                  <div className="h-6 w-1/3 rounded bg-gray-200" />
-                  <div className="mt-4 h-4 w-full rounded bg-gray-200" />
-                  <div className="mt-2 h-4 w-5/6 rounded bg-gray-200" />
-                </div>
-              ))}
-
-            {!hasNextPage && posts.length > 0 && (
-              <div className="py-10 text-center font-mono text-sm font-bold text-gray-500 uppercase">
-                You're all caught up! 🎉
-              </div>
-            )}
-
-            <div ref={sentinelRef} aria-hidden="true" />
           </div>
         </section>
       </PullToRefresh>
