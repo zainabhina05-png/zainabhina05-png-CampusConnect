@@ -238,19 +238,6 @@ export default function EventsPage() {
   }, [supabase, refetch]);
 
   useEffect(() => {
-    const channel = supabase
-      .channel("realtime_saved_events")
-      .on("postgres_changes", { event: "*", schema: "public", table: "saved_events" }, () => {
-        refetch();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, refetch]);
-
-  useEffect(() => {
     const handleRefetch = () => refetch();
     window.addEventListener("refetchEvents", handleRefetch);
     return () => window.removeEventListener("refetchEvents", handleRefetch);
@@ -268,7 +255,7 @@ export default function EventsPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const { data, error } = await supabase.functions.invoke("toggle-rsvp", {
+      const { error } = await supabase.functions.invoke("toggle-rsvp", {
         body: { eventId, hasRsvpd },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
