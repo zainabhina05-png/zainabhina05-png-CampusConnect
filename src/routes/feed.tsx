@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { RoleBadge } from "@/components/RoleBadge";
 import { SiteShell } from "@/components/site/SiteShell";
@@ -747,6 +748,7 @@ export default function Feed() {
 
                       <div className="markdown-content mt-2 font-mono text-sm leading-relaxed">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
                             img: ({ src, alt }) => (
                               <img
@@ -954,7 +956,9 @@ export default function Feed() {
                                       </div>
                                     </div>
                                     <div className="markdown-content mt-1 font-mono text-sm">
-                                      <ReactMarkdown>{commentNode.content}</ReactMarkdown>
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {commentNode.content}
+                                      </ReactMarkdown>
                                     </div>
                                     <div className="mt-2 flex gap-2">
                                       <button
