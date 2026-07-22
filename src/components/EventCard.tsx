@@ -1,13 +1,15 @@
 import { formatDate, getGoogleCalendarUrl, formatEventDateRange } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { FormEvent, useState } from "react";
-import { Calendar, Check, Share2, X, Link as LinkIcon, Bookmark } from "lucide-react";
+import { Calendar, Check, Share2, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { TicketDialog } from "@/components/ui/ticket-modal";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EventDateBadge } from "@/components/EventDateBadge";
 import { EventRSVPButton } from "@/components/EventRSVPButton";
+import { RSVPButton } from "@/components/events/RSVPButton";
+import { BookmarkButton } from "@/components/events/BookmarkButton";
 
 interface Event {
   id: string;
@@ -118,15 +120,11 @@ export function EventCard({
           {event.event_date ? formatDate(event.event_date).split(" at ")[0].toUpperCase() : "TBA"}
         </p>
         <div className="flex gap-2 relative z-10">
-          <button
-            type="button"
+          <BookmarkButton
+            isSaved={isSaved}
+            isPending={isBookmarkPending}
             onClick={handleBookmarkClick}
-            disabled={isBookmarkPending}
-            className="neu-border neu-press grid h-8 w-8 shrink-0 place-items-center bg-white transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label={isSaved ? "Unsave event" : "Save event"}
-          >
-            <Bookmark className="h-4 w-4" fill={isSaved ? "black" : "none"} />
-          </button>
+          />
           <button
             type="button"
             onClick={handleShare}
@@ -166,13 +164,7 @@ export function EventCard({
       </dl>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <EventRSVPButton
-          eventId={event.id}
-          user={user}
-          hasRsvpd={hasRsvpd}
-          isPending={isRsvpPending}
-          onToggle={onRsvpToggle}
-        />
+        <RSVPButton hasRsvpd={hasRsvpd} isPending={isRsvpPending} onClick={handleRsvpClick} />
 
         <TooltipProvider>
           <Tooltip>
