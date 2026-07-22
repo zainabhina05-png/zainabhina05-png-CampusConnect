@@ -1,14 +1,13 @@
-import { formatDate, formatEventDateRange, getGoogleCalendarUrl } from "@/lib/utils";
+import { formatDate, formatEventDateRange, getCountdown, getGoogleCalendarUrl } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { Calendar, Check, Share2, Link as LinkIcon } from "lucide-react";
+import { Calendar, Check, Share2, Link as LinkIcon, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { TicketDialog } from "@/components/ui/ticket-modal";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EventRSVPButton } from "@/components/EventRSVPButton";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { RSVPButton } from "@/components/events/RSVPButton";
-import { BookmarkButton } from "@/components/events/BookmarkButton";
 
 interface Event {
   id: string;
@@ -48,7 +47,7 @@ export function EventCard({
   const myRsvp = user ? rsvps.find((rsvp) => rsvp.user_id === user.id) : null;
 
   const hasRsvpd = !!myRsvp;
-  const colors = ["bg-lime", "bg-sky", "bg-peach", "bg-lavender"];
+  const colors = ["bg-lime", "bg-sky", "bg-peach"];
   const googleCalendarUrl = getGoogleCalendarUrl({
     title: event.title,
     description: event.description,
@@ -57,6 +56,8 @@ export function EventCard({
     end_date: event.end_date,
     location: event.location,
   });
+  const countdown = event.event_date ? getCountdown(event.event_date) : "TBA";
+
   const [copied, setCopied] = useState(false);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -83,15 +84,11 @@ export function EventCard({
     }
   };
 
-  const handleRsvpToggleClick = () => {
-    if (!user) {
-      toast.error("Please log in to RSVP");
-      return;
-    }
-    if (hasRsvpd) {
+  const handleRsvpToggleClick = (eventId: string, currentHasRsvpd: boolean) => {
+    if (currentHasRsvpd) {
       setConfirmOpen(true);
     } else {
-      onRsvpToggle(event.id, false);
+      onRsvpToggle(eventId, false);
     }
   };
 
@@ -120,9 +117,19 @@ export function EventCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col">
-          <p className="font-mono text-xs font-bold uppercase tracking-wider pr-10">
+          <p className="font-mono text-xs font-bold uppercase tracking-wider pr-10 text-red-900">
             {event.event_date ? formatDate(event.event_date).split(" at ")[0].toUpperCase() : "TBA"}
           </p>
+
+          {event.event_date && (
+            <span
+              className={`mt-2 inline-flex min-h-[24px] items-center rounded-full px-2 py-1 text-[11px] font-bold ${
+                countdown === "Ended" ? "bg-gray-100 text-gray-600" : "bg-peach text-orange-700"
+              }`}
+            >
+              {countdown}
+            </span>
+          )}
         </div>
 
         <div className="flex gap-2 relative z-10">
@@ -130,7 +137,13 @@ export function EventCard({
             isSaved={isSaved}
             isPending={isBookmarkPending}
             onClick={handleBookmarkClick}
-          />
+            disabled={isBookmarkPending}
+            className="neu-border neu-press grid h-8 w-8 shrink-0 place-items-center bg-white text-black transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label={isSaved ? "Unsave event" : "Save event"}
+          >
+            <Bookmark className="h-4 w-4" fill={isSaved ? "black" : "none"} />
+          </button>
+
           <button
             type="button"
             onClick={handleShare}
@@ -190,7 +203,13 @@ export function EventCard({
       </dl>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <RSVPButton hasRsvpd={hasRsvpd} isPending={isRsvpPending} onClick={handleRsvpToggleClick} />
+        <EventRSVPButton
+          eventId={event.id}
+          user={user}
+          hasRsvpd={hasRsvpd}
+          isPending={isRsvpPending}
+          onToggle={handleRsvpToggleClick}
+        />
 
         <TooltipProvider>
           <Tooltip>
