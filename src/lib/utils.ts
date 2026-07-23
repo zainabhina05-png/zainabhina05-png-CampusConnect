@@ -229,24 +229,21 @@ export function getIcsContent(event: {
   return lines.join("\r\n");
 }
 
-export function getMultiIcsContent(events: {
-  title: string;
-  description: string | null;
-  event_date: string | null;
-  start_date?: string | null;
-  end_date?: string | null;
-  location: string | null;
-}[]): string | null {
+export function getMultiIcsContent(
+  events: {
+    title: string;
+    description: string | null;
+    event_date: string | null;
+    start_date?: string | null;
+    end_date?: string | null;
+    location: string | null;
+  }[],
+): string | null {
   if (!events.length) return null;
 
-  const formatUtc = (date: Date) =>
-    date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const formatUtc = (date: Date) => date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//CampusConnect//Events//EN",
-  ];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CampusConnect//Events//EN"];
 
   for (const event of events) {
     const startValue = event.start_date || event.event_date;

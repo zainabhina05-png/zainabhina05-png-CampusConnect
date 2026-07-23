@@ -27,7 +27,11 @@ import { calculateReadTime } from "@/utils/readTime";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 
-import { MarkdownEditor, type MarkdownEditorRef } from "@/components/MarkdownEditor";
+import {
+  MarkdownEditorWithMentions,
+  type MarkdownEditorWithMentionsRef,
+} from "@/components/MarkdownEditorWithMentions";
+import { MentionRenderer } from "@/components/MentionRenderer";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { ShareMenu } from "@/components/ui/ShareMenu";
 import {
@@ -95,7 +99,7 @@ export default function Feed() {
   const [user, setUser] = useState<User | null>(null);
   const emailVerified = useEmailVerification();
   const [newPost, setNewPost] = useState("");
-  const editorRef = useRef<MarkdownEditorRef>(null);
+  const editorRef = useRef<MarkdownEditorWithMentionsRef>(null);
   const [newComments, setNewComments] = useState<Record<string, string>>({});
   const [activeReplyIds, setActiveReplyIds] = useState<Record<string, string>>({});
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
@@ -506,7 +510,12 @@ export default function Feed() {
         <section className="bg-cream px-4 py-12 md:px-6">
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="space-y-3">
-              <MarkdownEditor ref={editorRef} value={newPost} onChange={setNewPost} />
+              <MarkdownEditorWithMentions
+                ref={editorRef}
+                value={newPost}
+                onChange={setNewPost}
+                clubId={selectedClubId}
+              />
 
               <div className="neu-border flex flex-col gap-3 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                 <select
@@ -800,6 +809,11 @@ export default function Feed() {
                                 className="max-h-64 cursor-zoom-in rounded-none neu-border"
                                 loading="lazy"
                               />
+                            ),
+                            p: ({ children }) => (
+                              <p>
+                                <MentionRenderer content={String(children)} />
+                              </p>
                             ),
                           }}
                         >

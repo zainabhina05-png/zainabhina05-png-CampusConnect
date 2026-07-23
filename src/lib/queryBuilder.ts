@@ -1,7 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type SqlOperator =
-  "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "in" | "is_null" | "is_not_null";
+  | "eq"
+  | "neq"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "like"
+  | "ilike"
+  | "in"
+  | "is_null"
+  | "is_not_null";
 
 export type FilterCondition = {
   field: string;

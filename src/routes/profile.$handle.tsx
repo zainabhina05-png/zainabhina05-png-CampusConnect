@@ -249,7 +249,8 @@ export default function Profile() {
                 {upcomingEvents.map(
                   (e: { id: string; title: string; event_date: string | null; clubs: unknown }) => {
                     const clubsArr = e.clubs as
-                      { slug: string; name: string } | { slug: string; name: string }[];
+                      | { slug: string; name: string }
+                      | { slug: string; name: string }[];
                     const club = Array.isArray(clubsArr) ? clubsArr[0] : clubsArr;
                     return (
                       <li

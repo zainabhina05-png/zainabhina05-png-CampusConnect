@@ -120,9 +120,7 @@ export default function DashboardCalendar() {
   const filteredEvents =
     selectedCategories.length === 0
       ? events
-      : events.filter(
-          (e) => e.category_id && selectedCategories.includes(e.category_id),
-        );
+      : events.filter((e) => e.category_id && selectedCategories.includes(e.category_id));
 
   function toggleCategory(id: string) {
     setSelectedCategories((prev) =>
