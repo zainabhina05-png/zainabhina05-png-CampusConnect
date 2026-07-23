@@ -218,8 +218,9 @@ export function EventCard({
         </div>
 
         <div className="flex gap-2 relative z-10">
-          <button
-            type="button"
+          <BookmarkButton
+            isSaved={isSaved}
+            isPending={isBookmarkPending}
             onClick={handleBookmarkClick}
             disabled={isBookmarkPending}
             className="neu-border neu-press grid h-8 w-8 shrink-0 place-items-center bg-white text-black transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
