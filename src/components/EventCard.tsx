@@ -146,7 +146,6 @@ export function EventCard({
   });
   const countdown = event.event_date ? getCountdown(event.event_date) : "TBA";
 
-  const [copied, setCopied] = useState(false);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -160,17 +159,10 @@ export function EventCard({
     }
   };
 
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}#event-${event.id}`;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      toast.success("Link copied!");
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error("Failed to copy link.");
-    }
-  };
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}#event-${event.id}`
+      : "";
 
   const handleRsvpToggleClick = (eventId: string, currentHasRsvpd: boolean) => {
     if (currentHasRsvpd) {
@@ -226,18 +218,19 @@ export function EventCard({
             isPending={isBookmarkPending}
             onClick={handleBookmarkClick}
           />
-          <button
-            type="button"
-            onClick={handleShare}
-            aria-label="Copy event link"
-            className="neu-border neu-press grid h-8 w-8 shrink-0 place-items-center bg-white text-black"
+          <ShareMenu
+            url={shareUrl}
+            title={event.title}
+            text={`Check out this event: ${event.title}`}
           >
-            {copied ? (
-              <Check aria-hidden="true" size={14} strokeWidth={3} />
-            ) : (
+            <button
+              type="button"
+              aria-label="Share event link"
+              className="neu-border neu-press grid h-8 w-8 shrink-0 place-items-center bg-white text-black"
+            >
               <Share2 aria-hidden="true" size={14} strokeWidth={3} />
-            )}
-          </button>
+            </button>
+          </ShareMenu>
         </div>
       </div>
 
@@ -341,7 +334,7 @@ export function EventCard({
 
       <div className="mt-4">
         <ShareMenu
-          url={typeof window !== "undefined" ? window.location.href : ""}
+          url={shareUrl}
           title={event.title}
           text={`Check out this event: ${event.title}`}
         />
