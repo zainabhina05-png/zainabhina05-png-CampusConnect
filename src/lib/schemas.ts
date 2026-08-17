@@ -222,6 +222,7 @@ export const ProfileUpdateAllowlistSchema = z
     linkedin_url: z.string().trim().nullable().optional(),
     phone_number: z.string().trim().nullable().optional(),
     skills: z.array(z.string()).optional(),
+    course_codes: z.array(z.string().trim().min(2).max(32)).optional(),
   })
   .strict(); // Strips or rejects any unmapped properties
 

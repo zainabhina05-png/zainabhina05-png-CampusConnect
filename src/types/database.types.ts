@@ -212,6 +212,7 @@ export type Database = {
           linkedin_url: string | null;
           role: "student" | "admin" | "faculty" | "owner" | "system_admin";
           skills: string[] | null;
+          course_codes: string[];
           notification_preferences: Json | null;
           is_banned: boolean;
           strike_count: number;
@@ -233,6 +234,7 @@ export type Database = {
           linkedin_url?: string | null;
           role?: "student" | "admin" | "faculty" | "owner" | "system_admin";
           skills?: string[] | null;
+          course_codes?: string[];
           notification_preferences?: Json | null;
           is_banned?: boolean;
           strike_count?: number;
@@ -254,6 +256,7 @@ export type Database = {
           linkedin_url?: string | null;
           role?: "student" | "admin" | "faculty" | "owner" | "system_admin";
           skills?: string[] | null;
+          course_codes?: string[];
           notification_preferences?: Json | null;
           is_banned?: boolean;
           strike_count?: number;
@@ -261,6 +264,80 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      micro_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          course_code: string;
+          location: string;
+          max_capacity: number;
+          created_at: string;
+          expires_at: string;
+          archived_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          course_code: string;
+          location: string;
+          max_capacity?: number;
+          created_at?: string;
+          expires_at?: string;
+          archived_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          course_code?: string;
+          location?: string;
+          max_capacity?: number;
+          created_at?: string;
+          expires_at?: string;
+          archived_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "micro_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      micro_event_participants: {
+        Row: {
+          micro_event_id: string;
+          user_id: string;
+          joined_at: string;
+        };
+        Insert: {
+          micro_event_id: string;
+          user_id: string;
+          joined_at?: string;
+        };
+        Update: {
+          micro_event_id?: string;
+          user_id?: string;
+          joined_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "micro_event_participants_micro_event_id_fkey";
+            columns: ["micro_event_id"];
+            isOneToOne: false;
+            referencedRelation: "micro_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "micro_event_participants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_preferences: {
         Row: {
@@ -1031,7 +1108,14 @@ export type Database = {
           status: "pending" | "approved" | "rejected";
           joined_at: string | null;
           removed_at: string | null;
-          termination_reason: "term_completed" | "resigned" | "impeached" | "removed" | "role_changed" | string | null;
+          termination_reason:
+            | "term_completed"
+            | "resigned"
+            | "impeached"
+            | "removed"
+            | "role_changed"
+            | string
+            | null;
           created_at: string;
         };
         Insert: {
@@ -1042,7 +1126,14 @@ export type Database = {
           status?: "pending" | "approved" | "rejected";
           joined_at?: string | null;
           removed_at?: string | null;
-          termination_reason?: "term_completed" | "resigned" | "impeached" | "removed" | "role_changed" | string | null;
+          termination_reason?:
+            | "term_completed"
+            | "resigned"
+            | "impeached"
+            | "removed"
+            | "role_changed"
+            | string
+            | null;
           created_at?: string;
         };
         Update: {
@@ -1053,7 +1144,14 @@ export type Database = {
           status?: "pending" | "approved" | "rejected";
           joined_at?: string | null;
           removed_at?: string | null;
-          termination_reason?: "term_completed" | "resigned" | "impeached" | "removed" | "role_changed" | string | null;
+          termination_reason?:
+            | "term_completed"
+            | "resigned"
+            | "impeached"
+            | "removed"
+            | "role_changed"
+            | string
+            | null;
           created_at?: string;
         };
         Relationships: [
@@ -2025,6 +2123,52 @@ export type Database = {
           p_accuracy_meters?: number | null;
         };
         Returns: Json;
+      };
+      create_micro_event: {
+        Args: {
+          p_course_code: string;
+          p_location: string;
+          p_max_capacity?: number;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          course_code: string;
+          location: string;
+          max_capacity: number;
+          created_at: string;
+          expires_at: string;
+          archived_at: string | null;
+        };
+      };
+      join_micro_event: {
+        Args: { p_micro_event_id: string };
+        Returns: undefined;
+      };
+      leave_micro_event: {
+        Args: { p_micro_event_id: string };
+        Returns: undefined;
+      };
+      archive_micro_event: {
+        Args: { p_micro_event_id: string };
+        Returns: undefined;
+      };
+      get_matching_micro_events: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          user_id: string;
+          course_code: string;
+          location: string;
+          max_capacity: number;
+          created_at: string;
+          expires_at: string;
+          host_name: string;
+          host_handle: string | null;
+          participant_count: number;
+          is_joined: boolean;
+          is_host: boolean;
+        }[];
       };
       get_event_analytics: {
         Args: {

@@ -25,10 +25,12 @@ describe("Mass Assignment Defense Suite (#2147)", () => {
       handle: "janedoe",
       bio: "Software developer",
       skills: ["React", "TypeScript"],
+      course_codes: ["CALC 101", "BIO 201"],
     };
 
     const parsed = ProfileUpdateAllowlistSchema.parse(validPayload);
     expect(parsed.first_name).toBe("Jane");
     expect(parsed.skills).toEqual(["React", "TypeScript"]);
+    expect(parsed.course_codes).toEqual(["CALC 101", "BIO 201"]);
   });
 });

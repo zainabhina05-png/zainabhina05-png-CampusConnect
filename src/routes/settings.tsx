@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 
 import { OptimizedImage } from "@/components/media/OptimizedImage";
 import { Switch } from "@/components/ui/switch";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 import type { User } from "@supabase/supabase-js";
 import { useQuery } from "@/hooks/useReactQueryReplacement";
@@ -104,6 +104,9 @@ export default function SettingsPage() {
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const skillInputRef = useRef<HTMLInputElement>(null);
+  const [courseCodes, setCourseCodes] = useState<string[]>([]);
+  const [courseCodeInput, setCourseCodeInput] = useState("");
+  const courseCodeInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddSkill = () => {
     const trimmed = skillInput.trim();
@@ -123,6 +126,26 @@ export default function SettingsPage() {
 
   const handleRemoveSkill = (skill: string) => {
     setSkills((prev) => prev.filter((s) => s !== skill));
+  };
+
+  const handleAddCourseCode = () => {
+    const normalized = courseCodeInput.trim().replace(/\s+/g, " ").toUpperCase();
+    if (normalized && !courseCodes.includes(normalized)) {
+      setCourseCodes((prev) => [...prev, normalized]);
+    }
+    setCourseCodeInput("");
+    courseCodeInputRef.current?.focus();
+  };
+
+  const handleCourseCodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCourseCode();
+    }
+  };
+
+  const handleRemoveCourseCode = (courseCode: string) => {
+    setCourseCodes((prev) => prev.filter((code) => code !== courseCode));
   };
 
   useEffect(() => {
@@ -405,6 +428,11 @@ export default function SettingsPage() {
       if (Array.isArray(profile?.skills)) {
         setSkills(profile.skills as string[]);
       }
+      if (Array.isArray(profile?.course_codes)) {
+        setCourseCodes(
+          (profile.course_codes as string[]).map((courseCode) => courseCode.toUpperCase()),
+        );
+      }
     }
   }, [profile, user, form]);
 
@@ -521,6 +549,11 @@ export default function SettingsPage() {
         linkedin_url: values.linkedinUrl || null,
         phone_number: values.phoneNumber || null,
         skills: dedupedSkills,
+        course_codes: [
+          ...new Set(
+            courseCodes.map((courseCode) => courseCode.trim().toUpperCase()).filter(Boolean),
+          ),
+        ],
       };
 
       const safeData = ProfileUpdateAllowlistSchema.parse(rawPayload);
@@ -926,6 +959,55 @@ export default function SettingsPage() {
                       type="button"
                       onClick={handleAddSkill}
                       aria-label="Add skill"
+                      className="neu-border bg-black p-2 text-cream transition-all hover:scale-105 active:scale-95"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── Course codes for study-session matching ── */}
+                <div className="space-y-2 border-t-2 border-black pt-5">
+                  <p className="eyebrow font-bold text-black">Courses for study matching</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    Add exact course codes to see matching study tables in your Feed.
+                  </p>
+                  {courseCodes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {courseCodes.map((courseCode) => (
+                        <span
+                          key={courseCode}
+                          className="neu-border inline-flex items-center gap-1 bg-[#bae6fd] px-2.5 py-1 font-mono text-xs font-bold"
+                        >
+                          {courseCode}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCourseCode(courseCode)}
+                            aria-label={`Remove course code ${courseCode}`}
+                            className="ml-0.5 rounded-none transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-black"
+                          >
+                            <X className="h-3 w-3" strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={courseCodeInputRef}
+                      value={courseCodeInput}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setCourseCodeInput(e.target.value)
+                      }
+                      onKeyDown={handleCourseCodeKeyDown}
+                      placeholder="e.g. CALC 101"
+                      maxLength={32}
+                      className="flex-1 border-0 border-b-2 border-black bg-transparent px-1 py-2 font-mono text-sm uppercase outline-none focus:bg-lime/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCourseCode}
+                      aria-label="Add course code"
                       className="neu-border bg-black p-2 text-cream transition-all hover:scale-105 active:scale-95"
                     >
                       <Plus className="h-4 w-4" />
